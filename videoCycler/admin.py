@@ -10,3 +10,5 @@ class CustomAdminClass(ModelAdmin):
     list_display = ('title', 'media_type', 'duration_in_seconds')
     list_filter = ('media_type',)
     search_fields = ('title',)
+
+

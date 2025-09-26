@@ -4,3 +4,4 @@
 /dist
 /media
 /staticfiles
+core/__pycache__/settings.cpython-312.pyc
