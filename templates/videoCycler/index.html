@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Display em Tela Cheia</title>
+    <style>
+        /* 1. Reset básico para remover margens e barras de rolagem */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Impede o aparecimento de barras de rolagem */
+            background-color: black; /* Fundo preto para preencher qualquer espaço vazio */
+        }
+
+        /* 2. Contêiner principal que ocupa toda a tela */
+        #display-container {
+            position: relative;
+            width: 100%; /* 100% da largura da viewport (janela) */
+            height: 100%; /* 100% da altura da viewport (janela) */
+        }
+
+        /* 3. Estilo para os elementos de mídia (vídeo e imagem) */
+        #display-container video,
+        #display-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /*
+             * 'object-fit: cover' é a chave aqui:
+             * Faz a mídia preencher todo o espaço do contêiner,
+             * mantendo a proporção e cortando o excesso se necessário.
+             * Isso evita barras pretas e distorções.
+            */
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- O único elemento no corpo da página -->
+    <div id="display-container"></div>
+
+    <script>
+        const displayContainer = document.getElementById('display-container');
+        let currentItemIndex = 0;
+        let imageTimer;
+
+        // O array é populado com os dados do Django
+        const playlist = [
+            {% for item in items %}
+            {
+                type: "{{ item.media_type }}",
+                url: "{{ item.file.url }}",
+                duration: {{ item.duration_in_seconds|default:10 }}
+            },
+            {% endfor %}
+        ];
+
+        // Função principal que exibe o item atual
+        function playCurrentItem() {
+            displayContainer.innerHTML = '';
+            clearTimeout(imageTimer);
+
+            if (playlist.length === 0) return;
+
+            const currentItem = playlist[currentItemIndex];
+
+            if (currentItem.type === 'video') {
+                const video = document.createElement('video');
+                video.src = currentItem.url;
+                video.autoplay = true;
+                video.muted = true; // Essencial para autoplay
+                video.playsInline = true; // Ajuda em dispositivos móveis
+
+                video.addEventListener('ended', playNextItem);
+
+                displayContainer.appendChild(video);
+                video.play().catch(error => {
+                    console.error("Erro ao tentar tocar o vídeo (autoplay bloqueado?):", error);
+                    // Se o autoplay falhar, força a passagem para o próximo item
+                    setTimeout(playNextItem, 2000);
+                });
+
+            } else if (currentItem.type === 'image') {
+                const img = document.createElement('img');
+                img.src = currentItem.url;
+                displayContainer.appendChild(img);
+
+                // Usa o setTimeout para agendar a troca da imagem
+                imageTimer = setTimeout(playNextItem, currentItem.duration * 1000);
+            }
+        }
+
+        // Função para avançar para o próximo item no ciclo
+        function playNextItem() {
+            currentItemIndex++;
+            if (currentItemIndex >= playlist.length) {
+                currentItemIndex = 0; // Volta ao início
+            }
+            playCurrentItem();
+        }
+
+        // Inicia o ciclo assim que a página carrega
+        if (playlist.length > 0) {
+            playCurrentItem();
+        }
+         // INÍCIO DO NOVO CÓDIGO PARA RECARGA AUTOMÁTICA
+
+    // 1. Armazena a contagem inicial de itens que a página carregou
+    const initialItemCount = playlist.length;
+
+    // 2. Define o intervalo de verificação (a cada 30 segundos)
+    const pollingInterval = 5000; // 5 segundos em milissegundos
+
+    // 3. Função que verifica se houve mudanças no servidor
+    async function checkForUpdates() {
+        try {
+            // Chama a nossa nova API
+            const response = await fetch('/api/check-updates/');
+            const data = await response.json();
+
+            console.log(`Verificando atualizações: Contagem local=${initialItemCount}, Contagem no servidor=${data.total_items}`);
+
+            // 4. Compara a contagem do servidor com a contagem inicial da página
+            if (data.total_items !== initialItemCount) {
+                // Se for diferente, recarrega a página para obter a nova playlist!
+                console.log("Mudanças detectadas! Recarregando a página...");
+                location.reload();
+            }
+        } catch (error) {
+            console.error("Erro ao verificar por atualizações:", error);
+        }
+    }
+
+    // 5. Inicia o ciclo de verificação usando setInterval
+    setInterval(checkForUpdates, pollingInterval);
+
+    // FIM DO NOVO CÓDIGO
+    </script>
+
+</body>
+</html>
