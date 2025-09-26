@@ -35,15 +35,6 @@ jobs:
         run: python manage.py migrate
         shell: bash
 
-      # 5. Cria o superusuário de forma não-interativa.
-      # Ele usa os segredos configurados no seu repositório do GitHub para segurança.
-      - name: Create Superuser (non-interactive)
-        env:
-          DJANGO_SUPERUSER_USERNAME: ${{ secrets.ADMIN_USER }}
-          DJANGO_SUPERUSER_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          DJANGO_SUPERUSER_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-        run: python manage.py createsuperuser --noinput
-        shell: bash
 
       # 6. Coleta todos os arquivos estáticos (CSS, JS, etc.) do Django Admin e do Unfold.
       # O --noinput evita que o script peça confirmação.
