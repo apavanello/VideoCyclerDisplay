@@ -73,7 +73,7 @@ jobs:
           echo "Instrucoes:" > release/LEIA-ME.txt
           echo "1. Descompacte todos os arquivos na mesma pasta." >> release/LEIA-ME.txt
           echo "2. Execute VideoDisplay.exe para iniciar o painel de controle." >> release/LEIA-ME.txt
-          Compress-Archive -Path "release\*" -DestinationPath "VideoDisplay-PR-${{ github.event.pull_request.number }}.zip"
+          Compress-Archive -Path "release\*" -DestinationPath "VideoDisplay-PR-${{ github.event.pull_request.title }}.zip"
         shell: powershell
 
       # 9. Cria a Release no GitHub com as informações do PR.
@@ -85,6 +85,6 @@ jobs:
           # NOME DA RELEASE: Usa o título do Pull Request.
           name: "Release ${{ github.event.pull_request.title }}"
           # TAG DA RELEASE: Usa o número do PR, que é único e sequencial (ex: v123).
-          tag_name: v${{ github.event.pull_request.number }}
+          tag_name: v${{ github.event.pull_request.title }}
           # ARQUIVOS: Anexa o .zip com o nome baseado no número do PR.
-          files: VideoDisplay-PR-${{ github.event.pull_request.number }}.zip
+          files: VideoDisplay-PR-${{ github.event.pull_request.title }}.zip
