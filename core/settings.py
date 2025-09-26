@@ -15,12 +15,22 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-if getattr(sys, 'frozen', False):
-    # Se estiver congelado, o diretório da aplicação é a pasta onde o .exe está
+if os.getenv('RUNNING_IN_DOCKER') == 'true':
+    print("Modo de Execução: Docker")
+    DB_PATH = BASE_DIR / 'db' / 'db.sqlite3'
+    MEDIA_ROOT_PATH = BASE_DIR / 'media'
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+elif getattr(sys, 'frozen', False):
+    print("Modo de Execução: Executável (PyInstaller)")
     APP_DIR = Path(sys.executable).parent
+    DB_PATH = APP_DIR / 'db.sqlite3'
+    MEDIA_ROOT_PATH = APP_DIR / 'media'
+
 else:
-    # Se não, estamos em desenvolvimento, então o diretório é o BASE_DIR normal
-    APP_DIR = BASE_DIR
+    print("Modo de Execução: Desenvolvimento Local")
+    DB_PATH = BASE_DIR / 'db.sqlite3'
+    MEDIA_ROOT_PATH = BASE_DIR / 'media'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -34,8 +44,8 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+MEDIA_ROOT = MEDIA_ROOT_PATH
 MEDIA_URL = '/media/'
-MEDIA_ROOT = APP_DIR / 'media'
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -90,9 +100,10 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': APP_DIR / 'db.sqlite3',
+        'NAME': DB_PATH,
     }
 }
+
 
 
 # Password validation
