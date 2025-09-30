@@ -19,24 +19,17 @@ ALLOWED_HOSTS=*
 EOF
 fi
 
-#create db folder if not exist
-if [ ! -d db ]; then
-    mkdir db
-    echo "Created db folder"
-fi
-
-#create db.sqlite3 file if not exist
-if [ ! -f db/db.sqlite3 ]; then
-    touch db/db.sqlite3
-    echo "Created db/db.sqlite3 file"
-fi
-
 #start docker compose
 docker-compose build
 
 #run migrations
-docker-compose exec web python manage.py migrate
+docker-compose run --rm web python manage.py migrate
 #collect static files
-docker-compose exec web python manage.py collectstatic --noinput
-# Create superuser if not exist
-
+docker-compose run --rm web python manage.py collectstatic --noinput
+# Create superuser if first run
+if [ ! -f .first_run ]; then
+    docker-compose run --rm web python manage.py createsuperuser
+    touch .first_run
+fi
+#start the server
+docker-compose up -d
