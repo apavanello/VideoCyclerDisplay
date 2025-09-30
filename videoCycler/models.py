@@ -18,6 +18,7 @@ class DisplayItem(models.Model):
         help_text="Apenas para imagens. Define por quantos segundos a imagem será exibida."
     )
     order = models.PositiveIntegerField(default=0, help_text="Define a ordem de exibição.")
+    mute = models.BooleanField(default=True, help_text="Apenas para vídeos. Define se o vídeo será reproduzido sem som.")
 
     def __str__(self):
         return f"{self.get_media_type_display()}: {self.title}"

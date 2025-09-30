@@ -56,6 +56,7 @@
                 type: "{{ item.media_type }}",
                 url: "{{ item.file.url }}",
                 duration: {{ item.duration_in_seconds|default:10 }}
+                mute: {{ item.mute|default:"false"|lower }}
             },
             {% endfor %}
         ];
@@ -73,7 +74,7 @@
                 const video = document.createElement('video');
                 video.src = currentItem.url;
                 video.autoplay = true;
-                video.muted = true; // Essencial para autoplay
+                video.muted = currentItem.mute; // Define se o vídeo deve estar mudo
                 video.playsInline = true; // Ajuda em dispositivos móveis
 
                 video.addEventListener('ended', playNextItem);
