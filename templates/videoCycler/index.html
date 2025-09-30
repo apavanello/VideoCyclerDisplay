@@ -55,7 +55,7 @@
             {
                 type: "{{ item.media_type }}",
                 url: "{{ item.file.url }}",
-                duration: {{ item.duration_in_seconds|default:10 }}
+                duration: {{ item.duration_in_seconds|default:10 }},
                 mute: {{ item.mute|default:"false"|lower }}
             },
             {% endfor %}
