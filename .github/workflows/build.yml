@@ -1,90 +1,90 @@
-name: Build and Release Windows Executable
+# name: Build and Release Windows Executable
 
-# GATILHO ATUALIZADO: A action agora roda quando um Pull Request para a branch 'main' é fechado.
-on:
-  pull_request:
-    types: [closed]
-    branches: [ "main" ]
+# # GATILHO ATUALIZADO: A action agora roda quando um Pull Request para a branch 'main' é fechado.
+# on:
+#   pull_request:
+#     types: [closed]
+#     branches: [ "main" ]
 
-jobs:
-  build-and-release:
-    # CONDIÇÃO: Este trabalho só será executado SE o Pull Request foi de fato mergeado.
-    # Isso impede que a action rode para PRs fechados sem merge.
-    if: github.event.pull_request.merged == true
+# jobs:
+#   build-and-release:
+#     # CONDIÇÃO: Este trabalho só será executado SE o Pull Request foi de fato mergeado.
+#     # Isso impede que a action rode para PRs fechados sem merge.
+#     if: github.event.pull_request.merged == true
 
-    # O resto do trabalho continua muito similar...
-    runs-on: windows-latest
-    permissions:
-      contents: write
+#     # O resto do trabalho continua muito similar...
+#     runs-on: windows-latest
+#     permissions:
+#       contents: write
 
-    steps:
-      # 1. Baixa o código do seu repositório.
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+#     steps:
+#       # 1. Baixa o código do seu repositório.
+#       - name: Check out repository
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
 
-      # 2. Configura o ambiente Python.
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+#       # 2. Configura o ambiente Python.
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
 
-      # 3. Instala as dependências.
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+#       # 3. Instala as dependências.
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
 
-      # 4. Roda as migrações.
-      - name: Run Django Migrations
-        run: python manage.py migrate
-        shell: bash
+#       # 4. Roda as migrações.
+#       - name: Run Django Migrations
+#         run: python manage.py migrate
+#         shell: bash
 
-      # 5. Cria o superusuário padrão.
-      - name: Create Superuser
-        env:
-          DJANGO_SUPERUSER_USERNAME: ${{ secrets.ADMIN_USER }}
-          DJANGO_SUPERUSER_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          DJANGO_SUPERUSER_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-        run: python manage.py createsuperuser --noinput
-        shell: bash
-        #if fail continue: true
-        continue-on-error: true
+#       # 5. Cria o superusuário padrão.
+#       - name: Create Superuser
+#         env:
+#           DJANGO_SUPERUSER_USERNAME: ${{ secrets.ADMIN_USER }}
+#           DJANGO_SUPERUSER_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+#           DJANGO_SUPERUSER_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+#         run: python manage.py createsuperuser --noinput
+#         shell: bash
+#         #if fail continue: true
+#         continue-on-error: true
         
 
-      # 6. Coleta os arquivos estáticos.
-      - name: Collect Static Files
-        run: python manage.py collectstatic --noinput
-        shell: bash
+#       # 6. Coleta os arquivos estáticos.
+#       - name: Collect Static Files
+#         run: python manage.py collectstatic --noinput
+#         shell: bash
 
-      # 7. Compila o executável principal.
-      - name: Build Main Executable with PyInstaller
-        run: pyinstaller VideoDisplay.spec
-        shell: bash
+#       # 7. Compila o executável principal.
+#       - name: Build Main Executable with PyInstaller
+#         run: pyinstaller VideoDisplay.spec
+#         shell: bash
 
-      # 8. Prepara a pasta de release e cria o arquivo .zip.
-      # O nome do .zip agora usa o número do PR para fácil identificação.
-      - name: Package Release Files
-        run: |
-          mkdir release
-          copy dist\VideoDisplay.exe release\VideoDisplay.exe
-          copy db.sqlite3 release\db.sqlite3
-          echo "Instrucoes:" > release/LEIA-ME.txt
-          echo "1. Descompacte todos os arquivos na mesma pasta." >> release/LEIA-ME.txt
-          echo "2. Execute VideoDisplay.exe para iniciar o painel de controle." >> release/LEIA-ME.txt
-          Compress-Archive -Path "release\*" -DestinationPath "VideoDisplay-PR-${{ github.event.pull_request.title }}.zip"
-        shell: powershell
+#       # 8. Prepara a pasta de release e cria o arquivo .zip.
+#       # O nome do .zip agora usa o número do PR para fácil identificação.
+#       - name: Package Release Files
+#         run: |
+#           mkdir release
+#           copy dist\VideoDisplay.exe release\VideoDisplay.exe
+#           copy db.sqlite3 release\db.sqlite3
+#           echo "Instrucoes:" > release/LEIA-ME.txt
+#           echo "1. Descompacte todos os arquivos na mesma pasta." >> release/LEIA-ME.txt
+#           echo "2. Execute VideoDisplay.exe para iniciar o painel de controle." >> release/LEIA-ME.txt
+#           Compress-Archive -Path "release\*" -DestinationPath "VideoDisplay-PR-${{ github.event.pull_request.title }}.zip"
+#         shell: powershell
 
-      # 9. Cria a Release no GitHub com as informações do PR.
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          # NOME DA RELEASE: Usa o título do Pull Request.
-          name: "Release ${{ github.event.pull_request.title }}"
-          # TAG DA RELEASE: Usa o número do PR, que é único e sequencial (ex: v123).
-          tag_name: v${{ github.event.pull_request.title }}
-          # ARQUIVOS: Anexa o .zip com o nome baseado no número do PR.
-          files: VideoDisplay-PR-${{ github.event.pull_request.title }}.zip
+#       # 9. Cria a Release no GitHub com as informações do PR.
+#       - name: Create GitHub Release
+#         id: create_release
+#         uses: softprops/action-gh-release@v2
+#         with:
+#           generate_release_notes: true
+#           # NOME DA RELEASE: Usa o título do Pull Request.
+#           name: "Release ${{ github.event.pull_request.title }}"
+#           # TAG DA RELEASE: Usa o número do PR, que é único e sequencial (ex: v123).
+#           tag_name: v${{ github.event.pull_request.title }}
+#           # ARQUIVOS: Anexa o .zip com o nome baseado no número do PR.
+#           files: VideoDisplay-PR-${{ github.event.pull_request.title }}.zip
