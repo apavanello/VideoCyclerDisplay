@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .media_data:/app/media
+      - media_data:/app/media
       - db_data:/app/db/
     environment:
       - RUNNING_IN_DOCKER=true
