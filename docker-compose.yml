@@ -5,7 +5,7 @@ services:
       - "8000:8000"
     volumes:
       - ./media:/app/media
-      - db_data:/app/db
+      - db_data:/app/db/
     environment:
       - RUNNING_IN_DOCKER=true
     env_file:
