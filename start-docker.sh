@@ -34,15 +34,6 @@ fi
 #start docker compose
 docker-compose build
 
-#get django uid and gid and store in variables
-UID=$(docker-compose exec web id -u)
-GID=$(docker-compose exec web id -g)
-
-chmod $UID:$GID db/db.sqlite3
-chmod $UID:$GID db
-
-docker-compose up -d
-
 #run migrations
 docker-compose exec web python manage.py migrate
 #collect static files
