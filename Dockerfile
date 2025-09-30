@@ -25,6 +25,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copia o script de entrypoint e o torna executável
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN mkdir -p /app/media /app/db
+RUN chown -R django-user:django-user /app/media /app/db
 
 # Define o entrypoint
 ENTRYPOINT ["entrypoint.sh"]
